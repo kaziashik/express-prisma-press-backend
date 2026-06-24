@@ -8,6 +8,8 @@ import { StatusCodes } from "http-status-codes";
 import { catchAsync } from "../../utils/catchAsync";
 import { Meta } from "react-router";
 import { sendResponse } from "../../utils/sendResponse";
+import jwt from "jsonwebtoken";
+import { jwtutils } from "../../utils/jwt";
 
 // const registerUser = async (req: Request, res: Response) => {
 //   try {
@@ -47,7 +49,6 @@ const registeruser = catchAsync(
     //   },
     // });
 
-
     sendResponse(res, {
       success: true,
       statusCode: httpsStatus.CREATED,
@@ -57,6 +58,30 @@ const registeruser = catchAsync(
   },
 );
 
+const getMyProfile = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    
+    const { accessToken } = req.cookies;
+    const verifiedToken = jwtutils.verifyToken(
+      accessToken,
+      config.jwt_access_secret,
+    );
+
+    if (typeof verifiedToken === "string") {
+      throw new Error(verifiedToken);
+    }
+
+    const profile = await userService.getMyProfileFromDB(verifiedToken.id);
+    res.send({
+      success: true,
+      StatusCodes: httpsStatus.OK,
+      message: "User Profile fetched successfully",
+      data: { profile },
+    });
+  },
+);
+
 export const userController = {
   registeruser,
+  getMyProfile,
 };

@@ -54,10 +54,11 @@ const loginUer = async (payload: ILoginuser) => {
 
   return {
     accessToken,
-    refreshToken,
+    refreshToken
   };
 };
 
+
 export const authService = {
-  loginUer,
+  loginUer
 };
