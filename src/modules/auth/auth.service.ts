@@ -1,9 +1,10 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "../../lib/prisma";
 import { ILoginuser } from "./auth.interface";
-import jwt, { SignOptions } from "jsonwebtoken";
+import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 import config from "../../config";
 import { jwtutils } from "../../utils/jwt";
+import { Role } from "../../../generated/prisma/enums";
 
 const loginUer = async (payload: ILoginuser) => {
   const { email, password } = payload;
@@ -19,6 +20,10 @@ const loginUer = async (payload: ILoginuser) => {
   const user = await prisma.user.findUniqueOrThrow({
     where: { email },
   });
+
+  if (user.activeStatus === "BLOCKED") {
+    throw new Error("your Account has been blocked.plase contct support");
+  }
 
   const isPasswordMatched = await bcrypt.compare(password, user.password);
   if (!isPasswordMatched) {
@@ -54,11 +59,44 @@ const loginUer = async (payload: ILoginuser) => {
 
   return {
     accessToken,
-    refreshToken
+    refreshToken,
   };
 };
 
+const refreshToken = async (refreshToken: string) => {
+  const verifiedRefreshToken = jwtutils.verifyToken(
+    refreshToken,
+    config.jwt_refresh_secret,
+  );
+  if (!verifiedRefreshToken.success) {
+    throw new Error(verifiedRefreshToken.error);
+  }
+  const { id } = verifiedRefreshToken.data as JwtPayload;
+  const user = await prisma.user.findFirstOrThrow({
+    where: { id },
+  });
+
+  if (user.activeStatus === "BLOCKED") {
+    throw new Error("user is blocked!");
+  }
+
+  const jwtPayload = {
+    id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
+
+  const accessToken = jwtutils.createToken(
+    jwtPayload,
+    config.jwt_refresh_secret,
+    config.jwt_refresh_expires_in as SignOptions,
+  );
+
+return {accessToken};
+};
 
 export const authService = {
-  loginUer
+  loginUer,
+  refreshToken,
 };
