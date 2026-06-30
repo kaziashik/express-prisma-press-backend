@@ -3,6 +3,11 @@ import { prisma } from "../../lib/prisma";
 import { ICommentPayload, IpaylodUpadetComment } from "./comment.interface";
 
 const createCommand = async (payload: ICommentPayload, userId: string) => {
+    await prisma.post.findFirstOrThrow({
+        where: {
+            id: payload.postId
+        }
+    })
   const result = await prisma.comment.create({
     data: {
       ...payload,
@@ -33,8 +38,15 @@ const GetCommanByID = async (commentId: string) => {
 const GetCommandByAuthId = async (authorId: string) => {
   const result = await prisma.comment.findMany({
     where: { authorId },
+    orderBy :{createdAt: "desc"},
     include: {
-      post: true,
+      post: {
+        select:{
+            id: true,
+            title: true,
+            views: true
+        }
+      }
     },
   });
   return result;

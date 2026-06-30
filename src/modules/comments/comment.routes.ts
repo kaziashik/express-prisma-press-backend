@@ -11,8 +11,8 @@ router.post("/",auth(Role.ADMIN,Role.AUTHOR,Role.USER),CommentController.createC
 router.get("/author",CommentController.GetCommandByAuthId)
 router.get("/:commentId",CommentController.GetCommanByID)
 router.patch("/:commentId",auth(Role.ADMIN,Role.AUTHOR,Role.USER),CommentController.updateCommand)
-router.patch("/:commentId/moderate",auth(Role.ADMIN,Role.AUTHOR,Role.USER),CommentController.UpdateByModerate)
-router.delete("/:commentId",CommentController.deletCommand)
+router.patch("/:commentId/moderate",auth(Role.ADMIN),CommentController.UpdateByModerate)
+router.delete("/:commentId",auth(Role.ADMIN,Role.AUTHOR,Role.USER),CommentController.deletCommand)
 
 
 
