@@ -4,6 +4,10 @@ import { authService } from "./auth.service";
 import { sendResponse } from "../../utils/sendResponse";
 import httpsStatus from "http-status";
 
+
+
+
+
 const loginUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const paylod = req.body;
@@ -32,6 +36,8 @@ const loginUser = catchAsync(
     });
   },
 );
+
+
 
 const refreshToken = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
